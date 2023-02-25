@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -25,13 +26,13 @@ type empData struct {
 }
 
 func main() {
+	//csvFile, err := os.Open("data/202206-citbike-tripdata.csv")
 	csvFile, err := os.Open("data/202301-citibike-tripdata.csv")
 	//csvFile, err := os.Open("data/202301-citibike-tripdata-reduced.csv")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println("opened csv")
 	defer csvFile.Close()
 
 	csvLines, err := csv.NewReader(csvFile).ReadAll()
@@ -55,14 +56,34 @@ func main() {
 			endLng:           strings.TrimSpace(line[11]),
 			memberCasual:     strings.TrimSpace(line[12]),
 		}
-		stationsUsage[emp.startStationName+"-"+emp.startStationId] = stationsUsage[emp.startStationName+"-"+emp.startStationId] + 1
-		stationsUsage[emp.endStationName+"-"+emp.endStationId] = stationsUsage[emp.endStationName+"-"+emp.endStationId] + 1
+		stationsUsage[emp.startStationName] = stationsUsage[emp.startStationName] + 1
+		stationsUsage[emp.endStationName] = stationsUsage[emp.endStationName] + 1
 
 	}
-	// fmt.Println(stationsUsage)
-	for stationName, stationUsage := range stationsUsage {
-		fmt.Println(stationName + ":" + strconv.Itoa(stationUsage))
+
+	sortedStations := sortStationsByUsage(stationsUsage)
+
+	for _, stationStats := range sortedStations {
+
+		fmt.Println(stationStats.Key + "," + strconv.Itoa(stationStats.Value))
 	}
 }
 
-//func getStationsUsage()  {}
+type kv struct {
+	Key   string
+	Value int
+}
+
+func sortStationsByUsage(stationsUsage map[string]int) []kv {
+
+	var sortedStations []kv
+	for k, v := range stationsUsage {
+		sortedStations = append(sortedStations, kv{k, v})
+	}
+
+	sort.Slice(sortedStations, func(i, j int) bool {
+		return sortedStations[i].Value > sortedStations[j].Value
+	})
+
+	return sortedStations
+}
