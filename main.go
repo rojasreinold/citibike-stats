@@ -1,5 +1,9 @@
 package main
 
+/*
+StationName, StationSize, month1 usage, month2 usage, etc
+
+*/
 import (
 	"encoding/csv"
 	"fmt"
@@ -26,7 +30,17 @@ type empData struct {
 }
 
 func main() {
-	//csvFile, err := os.Open("data/202206-citbike-tripdata.csv")
+
+	stationsUsage := getStationsUsages()
+	sortedStations := sortStationsByUsage(stationsUsage)
+
+	for _, stationStats := range sortedStations {
+		fmt.Println(stationStats.Key + "," + strconv.Itoa(stationStats.Value))
+	}
+}
+
+func getStationsUsages() map[string]int {
+	//csvFile, err := os.Open("data/2022d06-citbike-tripdata.csv")
 	csvFile, err := os.Open("data/202301-citibike-tripdata.csv")
 	//csvFile, err := os.Open("data/202301-citibike-tripdata-reduced.csv")
 	if err != nil {
@@ -61,12 +75,7 @@ func main() {
 
 	}
 
-	sortedStations := sortStationsByUsage(stationsUsage)
-
-	for _, stationStats := range sortedStations {
-
-		fmt.Println(stationStats.Key + "," + strconv.Itoa(stationStats.Value))
-	}
+	return stationsUsage
 }
 
 type kv struct {
