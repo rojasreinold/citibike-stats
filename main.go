@@ -7,9 +7,10 @@ StationName, StationSize, month1 usage, month2 usage, etc
 import (
 	"encoding/csv"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -31,17 +32,47 @@ type empData struct {
 
 func main() {
 
-	stationsUsage := getStationsUsages()
-	sortedStations := sortStationsByUsage(stationsUsage)
+	//stationsUsage := getStationsUsages()
 
-	for _, stationStats := range sortedStations {
-		fmt.Println(stationStats.Key + "," + strconv.Itoa(stationStats.Value))
+	// sortedStations := sortStationsByUsage(stationsUsage)
+
+	// for _, stationStats := range sortedStations {
+	// 	fmt.Println(stationStats.Key + "," + strconv.Itoa(stationStats.Value))
+	// }
+	// records := [][]string{
+	// 	{"station_name"},
+	// }
+
+	csvHeader := []string{
+		"station_name",
 	}
+
+	records := make(map[string][]int)
+
+	files, err := ioutil.ReadDir("data/")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		//Skip hidden files and directories
+		if file.Name()[0] == '.' || file.IsDir() {
+			continue
+		}
+
+		csvHeader = append(csvHeader, strings.Split(file.Name(), "-")[0])
+		records["test"] = []int{1}
+		//records[0] = append(records[0], strings.Split(file.Name(), "-")[0])
+		//fmt.Println(records)
+	}
+
+	fmt.Println(csvHeader)
+
 }
 
-func getStationsUsages() map[string]int {
-	//csvFile, err := os.Open("data/2022d06-citbike-tripdata.csv")
-	csvFile, err := os.Open("data/202301-citibike-tripdata.csv")
+func getStationsUsages(filename string) map[string]int {
+	csvFile, err := os.Open(filename)
+	//csvFile, err := os.Open("data/202301-citibike-tripdata.csv")
 	//csvFile, err := os.Open("data/202301-citibike-tripdata-reduced.csv")
 	if err != nil {
 		fmt.Println(err)
@@ -70,8 +101,14 @@ func getStationsUsages() map[string]int {
 			endLng:           strings.TrimSpace(line[11]),
 			memberCasual:     strings.TrimSpace(line[12]),
 		}
-		stationsUsage[emp.startStationName] = stationsUsage[emp.startStationName] + 1
-		stationsUsage[emp.endStationName] = stationsUsage[emp.endStationName] + 1
+
+		if !(strings.HasPrefix(emp.startStationId, "JC")) {
+			stationsUsage[emp.startStationName] = stationsUsage[emp.startStationName] + 1
+		}
+
+		if !(strings.HasPrefix(emp.endStationId, "JC")) {
+			stationsUsage[emp.endStationName] = stationsUsage[emp.endStationName] + 1
+		}
 
 	}
 
