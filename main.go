@@ -58,20 +58,20 @@ func main() {
 			if ok {
 				records[stationName] = append(val, stationUsage)
 			} else {
-				//fmt.Println(baseMonths)
 				val = baseMonths[:]
 				records[stationName] = append(val, stationUsage)
 
 			}
 		}
 		baseMonths = append(baseMonths, -1)
-		//fmt.Println(records)
+		fmt.Println("Parsing file data/" + file.Name())
 	}
 
 	csvRecords := [][]string{
 		csvHeader,
 	}
 
+	fmt.Println("Aggregating data...")
 	for stationName, stationUsage := range records {
 		var stationUsageS []string
 
@@ -83,6 +83,7 @@ func main() {
 
 	}
 	// Write data to new csv
+	fmt.Println("Saving to file citibike-stats-aggregate.csv")
 	outputFile, err := os.Create("citibike-stats-aggregate.csv")
 
 	if err != nil {
@@ -91,9 +92,6 @@ func main() {
 
 	w := csv.NewWriter(outputFile)
 	w.WriteAll(csvRecords)
-
-	//fmt.Println(csvHeader)
-
 }
 
 func getStationsUsages(filename string) map[string]int {
