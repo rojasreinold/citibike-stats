@@ -31,18 +31,6 @@ type empData struct {
 }
 
 func main() {
-
-	//stationsUsage := getStationsUsages()
-
-	// sortedStations := sortStationsByUsage(stationsUsage)
-
-	// for _, stationStats := range sortedStations {
-	// 	fmt.Println(stationStats.Key + "," + strconv.Itoa(stationStats.Value))
-	// }
-	// records := [][]string{
-	// 	{"station_name"},
-	// }
-
 	csvHeader := []string{
 		"station_name",
 	}
@@ -63,23 +51,17 @@ func main() {
 
 		csvHeader = append(csvHeader, strings.Split(file.Name(), "-")[0])
 		monthUsages := getStationsUsages("data/" + file.Name())
-		//fmt.Println(monthUsages)
 
-		//records[0] = append(records[0], strings.Split(file.Name(), "-")[0])
-		//fmt.Println(records)
 		for stationName, stationUsage := range monthUsages {
 			val, ok := records[stationName]
 			if ok {
 				records[stationName] = append(val, stationUsage)
 			} else {
-				// records[stationName] = []int{stationUsage}
 				fmt.Println(baseMonths)
 				val = baseMonths[:]
 				records[stationName] = append(val, stationUsage)
 
 			}
-			// fmt.Println(stationName)
-			// fmt.Println(stationUsage)
 		}
 		baseMonths = append(baseMonths, -1)
 		fmt.Println(records)
@@ -91,8 +73,6 @@ func main() {
 
 func getStationsUsages(filename string) map[string]int {
 	csvFile, err := os.Open(filename)
-	//csvFile, err := os.Open("data/202301-citibike-tripdata.csv")
-	//csvFile, err := os.Open("data/202301-citibike-tripdata-reduced.csv")
 	if err != nil {
 		fmt.Println(err)
 	}
