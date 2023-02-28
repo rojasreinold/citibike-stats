@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -57,17 +58,41 @@ func main() {
 			if ok {
 				records[stationName] = append(val, stationUsage)
 			} else {
-				fmt.Println(baseMonths)
+				//fmt.Println(baseMonths)
 				val = baseMonths[:]
 				records[stationName] = append(val, stationUsage)
 
 			}
 		}
 		baseMonths = append(baseMonths, -1)
-		fmt.Println(records)
+		//fmt.Println(records)
 	}
 
-	fmt.Println(csvHeader)
+	csvRecords := [][]string{
+		csvHeader,
+	}
+
+	for stationName, stationUsage := range records {
+		var stationUsageS []string
+
+		for _, usage := range stationUsage {
+			stationUsageS = append(stationUsageS, strconv.Itoa(usage))
+		}
+
+		csvRecords = append(csvRecords, append([]string{stationName}, stationUsageS...))
+
+	}
+	// Write data to new csv
+	outputFile, err := os.Create("citibike-stats-aggregate.csv")
+
+	if err != nil {
+		log.Fatalln("Failed to open file", err)
+	}
+
+	w := csv.NewWriter(outputFile)
+	w.WriteAll(csvRecords)
+
+	//fmt.Println(csvHeader)
 
 }
 
