@@ -53,6 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	var baseMonths []int
 
 	for _, file := range files {
 		//Skip hidden files and directories
@@ -61,9 +62,27 @@ func main() {
 		}
 
 		csvHeader = append(csvHeader, strings.Split(file.Name(), "-")[0])
-		records["test"] = []int{1}
+		monthUsages := getStationsUsages("data/" + file.Name())
+		//fmt.Println(monthUsages)
+
 		//records[0] = append(records[0], strings.Split(file.Name(), "-")[0])
 		//fmt.Println(records)
+		for stationName, stationUsage := range monthUsages {
+			val, ok := records[stationName]
+			if ok {
+				records[stationName] = append(val, stationUsage)
+			} else {
+				// records[stationName] = []int{stationUsage}
+				fmt.Println(baseMonths)
+				val = baseMonths[:]
+				records[stationName] = append(val, stationUsage)
+
+			}
+			// fmt.Println(stationName)
+			// fmt.Println(stationUsage)
+		}
+		baseMonths = append(baseMonths, -1)
+		fmt.Println(records)
 	}
 
 	fmt.Println(csvHeader)
