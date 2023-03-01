@@ -63,10 +63,13 @@ func main() {
 
 			}
 		}
+
+		//TODO: Check all the rows have been added to. If not, add a -1 to that row to signal that that station is now closed
 		baseMonths = append(baseMonths, -1)
 		fmt.Println("Parsing file data/" + file.Name())
 	}
 
+	//TODO: Get station size data
 	csvRecords := [][]string{
 		csvHeader,
 	}
@@ -83,8 +86,10 @@ func main() {
 
 	}
 	// Write data to new csv
-	fmt.Println("Saving to file citibike-stats-aggregate.csv")
-	outputFile, err := os.Create("citibike-stats-aggregate.csv")
+	outputFileName := "citibike-stats-aggregate-" + strings.Split(files[0].Name(), "-")[0]
+	outputFileName = outputFileName + "-" + strings.Split(files[len(files)-1].Name(), "-")[0] + ".csv"
+	fmt.Println("Saving to file " + outputFileName)
+	outputFile, err := os.Create(outputFileName)
 
 	if err != nil {
 		log.Fatalln("Failed to open file", err)
