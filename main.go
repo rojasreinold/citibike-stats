@@ -1,14 +1,16 @@
 package main
 
 /*
-StationName, StationSize, month1 usage, month2 usage, etc
+StationName, StationSize, month1 trips, month2 trips, etc
 
 */
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -36,7 +38,14 @@ func main() {
 		"station_name",
 	}
 
+	stationDockSizes := getStationDockCounts()
+
 	records := make(map[string][]int)
+	csvHeader = append(csvHeader, "dock_capacity")
+
+	for stationName, stationDockSize := range stationDockSizes {
+		records[stationName] = []int{stationDockSize}
+	}
 
 	files, err := ioutil.ReadDir("data/")
 	if err != nil {
@@ -69,7 +78,6 @@ func main() {
 		fmt.Println("Parsing file data/" + file.Name())
 	}
 
-	//TODO: Get station size data
 	csvRecords := [][]string{
 		csvHeader,
 	}
@@ -85,6 +93,7 @@ func main() {
 		csvRecords = append(csvRecords, append([]string{stationName}, stationUsageS...))
 
 	}
+
 	// Write data to new csv
 	outputFileName := "citibike-stats-aggregate-" + strings.Split(files[0].Name(), "-")[0]
 	outputFileName = outputFileName + "-" + strings.Split(files[len(files)-1].Name(), "-")[0] + ".csv"
@@ -129,6 +138,7 @@ func getStationsUsages(filename string) map[string]int {
 			memberCasual:     strings.TrimSpace(line[12]),
 		}
 
+		// Log only the nyc stations
 		if !(strings.HasPrefix(emp.startStationId, "JC")) {
 			stationsUsage[emp.startStationName] = stationsUsage[emp.startStationName] + 1
 		}
@@ -140,6 +150,64 @@ func getStationsUsages(filename string) map[string]int {
 	}
 
 	return stationsUsage
+}
+
+func getStationDockCounts() map[string]int {
+	resp, err := http.Get("https://gbfs.citibikenyc.com/gbfs/en/station_information.json")
+
+	if err != nil {
+		log.Fatalln("Couldn't get station dock counts ", err)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	sb := string(body)
+
+	var jsonSB jsonData
+	err = json.Unmarshal([]byte(sb), &jsonSB)
+
+	if err != nil {
+		log.Fatalln("JSON Decode error ", err)
+	}
+
+	stationDockSizes := map[string]int{}
+
+	for _, station := range jsonSB.Data.Stations {
+		stationDockSizes[station.Name] = station.Capacity
+	}
+	return stationDockSizes
+}
+
+type jsonData struct {
+	Data struct {
+		Stations []struct {
+			LegacyID              string `json:"legacy_id"`
+			EightdStationServices []any  `json:"eightd_station_services"`
+			RentalUris            struct {
+				Android string `json:"android"`
+				Ios     string `json:"ios"`
+			} `json:"rental_uris"`
+			RentalMethods               []string `json:"rental_methods"`
+			StationID                   string   `json:"station_id"`
+			HasKiosk                    bool     `json:"has_kiosk"`
+			Lat                         float64  `json:"lat"`
+			ShortName                   string   `json:"short_name"`
+			RegionID                    string   `json:"region_id,omitempty"`
+			Lon                         float64  `json:"lon"`
+			ElectricBikeSurchargeWaiver bool     `json:"electric_bike_surcharge_waiver"`
+			Name                        string   `json:"name"`
+			StationType                 string   `json:"station_type"`
+			ExternalID                  string   `json:"external_id"`
+			Capacity                    int      `json:"capacity"`
+			EightdHasKeyDispenser       bool     `json:"eightd_has_key_dispenser"`
+		} `json:"stations"`
+	} `json:"data"`
+	LastUpdated int `json:"last_updated"`
+	TTL         int `json:"ttl"`
 }
 
 type kv struct {
