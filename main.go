@@ -12,7 +12,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -208,23 +207,4 @@ type jsonData struct {
 	} `json:"data"`
 	LastUpdated int `json:"last_updated"`
 	TTL         int `json:"ttl"`
-}
-
-type kv struct {
-	Key   string
-	Value int
-}
-
-func sortStationsByUsage(stationsUsage map[string]int) []kv {
-
-	var sortedStations []kv
-	for k, v := range stationsUsage {
-		sortedStations = append(sortedStations, kv{k, v})
-	}
-
-	sort.Slice(sortedStations, func(i, j int) bool {
-		return sortedStations[i].Value > sortedStations[j].Value
-	})
-
-	return sortedStations
 }
