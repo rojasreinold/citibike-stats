@@ -58,7 +58,7 @@ func main() {
 
 		// If a station is now closed, set trips to -1
 		for stationName, record := range records {
-			if len(record) < len(csvHeader) {
+			if len(record) < len(csvHeader)-1 {
 				records[stationName] = append(record, -1)
 			}
 
