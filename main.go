@@ -16,22 +16,6 @@ import (
 	"strings"
 )
 
-type empData struct {
-	rideId           string
-	rideType         string
-	startTime        string
-	endTime          string
-	startStationName string
-	startStationId   string
-	endStationName   string
-	endStationId     string
-	startLat         string
-	startLng         string
-	endLat           string
-	endLng           string
-	memberCasual     string
-}
-
 func main() {
 	csvHeader := []string{
 		"station_name",
@@ -72,7 +56,13 @@ func main() {
 			}
 		}
 
-		//TODO: Check all the rows have been added to. If not, add a -1 to that row to signal that that station is now closed
+		// If a station is now closed, set trips to -1
+		for stationName, record := range records {
+			if len(record) < len(csvHeader) {
+				records[stationName] = append(record, -1)
+			}
+
+		}
 		baseMonths = append(baseMonths, -1)
 		fmt.Println("Parsing file data/" + file.Name())
 	}
@@ -105,6 +95,22 @@ func main() {
 
 	w := csv.NewWriter(outputFile)
 	w.WriteAll(csvRecords)
+}
+
+type empData struct {
+	rideId           string
+	rideType         string
+	startTime        string
+	endTime          string
+	startStationName string
+	startStationId   string
+	endStationName   string
+	endStationId     string
+	startLat         string
+	startLng         string
+	endLat           string
+	endLng           string
+	memberCasual     string
 }
 
 func getStationsUsages(filename string) map[string]int {
